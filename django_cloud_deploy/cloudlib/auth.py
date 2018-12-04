@@ -38,6 +38,9 @@ class AuthClient(object):
         command = ['gcloud', 'auth', 'login', '-q']
         subprocess.check_call(
             command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        # This will make google.auth.deafult() return the credentials object
+        # created by "gcloud auth login".
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = (
             self._get_active_account_adc_path())
         creds, _ = google.auth.default()
