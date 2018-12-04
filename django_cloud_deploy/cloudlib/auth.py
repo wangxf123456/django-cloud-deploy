@@ -57,8 +57,9 @@ class AuthClient(object):
             Absolute path of the application default credentials path of the
             given account.
         """
-        command = ['gcloud', 'info',
-                   '--format=value(config.paths.global_config_dir)']
+        command = [
+            'gcloud', 'info', '--format=value(config.paths.global_config_dir)'
+        ]
         gcloud_config_path = subprocess.check_output(
             command, universal_newlines=True).rstrip()
         command = ['gcloud', 'info', '--format=value(config.account)']
@@ -67,4 +68,3 @@ class AuthClient(object):
         # These hardcoded values are also hardcoded by gcloud.
         return os.path.join(gcloud_config_path, 'legacy_credentials',
                             active_account, 'adc.json')
-
