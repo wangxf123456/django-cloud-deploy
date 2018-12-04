@@ -15,8 +15,7 @@
 import os
 import subprocess
 
-import google.auth
-from google.auth import credentials
+from google.oauth2 import credentials
 
 
 class AuthClient(object):
@@ -39,12 +38,9 @@ class AuthClient(object):
         subprocess.check_call(
             command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        # This will make google.auth.deafult() return the credentials object
-        # created by "gcloud auth login".
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = (
-            self._get_active_account_adc_path())
-        creds, _ = google.auth.default()
-        return creds
+        credentials_path = self._get_active_account_adc_path()
+        return credentials.Credentials.from_authorized_user_file(
+            credentials_path)
 
     @staticmethod
     def _get_active_account_adc_path() -> str:
