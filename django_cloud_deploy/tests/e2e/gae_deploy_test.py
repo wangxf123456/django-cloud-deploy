@@ -155,8 +155,8 @@ class GKEDeployAndUpdateE2ETest(test_base.ResourceCleanUpTest):
 
             with open(view_file_path, 'w') as view_file:
                 view_file.write(file_content)
-            arguments = types.SimpleNamespace(credentials=self.credentials,
-                                              backend='gke')
+            arguments = types.SimpleNamespace(
+                credentials=self.credentials, backend='gke')
 
             update.main(arguments, test_io)
 
