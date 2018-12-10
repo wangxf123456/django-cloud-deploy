@@ -114,7 +114,7 @@ def add_arguments(parser):
 def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
 
     try:
-        tool_requirements.check_and_handle_requirements(console)
+        tool_requirements.check_and_handle_requirements(console, args.backend)
     except tool_requirements.MissingRequirementsError as e:
         console.tell('Please install the following requirements:')
         for req in e.missing_requirements:

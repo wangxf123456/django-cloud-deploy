@@ -263,25 +263,32 @@ class CloudSqlProxy(Requirement):
             process.close()
 
 
-_REQUIREMENTS = [
-    Gcloud,
-    Docker,
-    CloudSqlProxy
-]
+_REQUIREMENTS = {
+    'gke': [
+        Gcloud,
+        Docker,
+        CloudSqlProxy
+    ],
+    'gae': [
+        Gcloud,
+        CloudSqlProxy
+    ]
+}
 
 
-def check_and_handle_requirements(console: io.IO):
+def check_and_handle_requirements(console: io.IO, backend: str):
     """Checks that requirements are installed. Attempts to install missing ones.
 
     Args:
         console: IO, class that handles the input/output with the user.
+        backend: str, Defines which platform on Determines what requirements are needed.
     Raises:
         MissingRequirementsError: Error that contains list of missing
             requirements.
     """
 
     missing_requirement_errors = []
-    for req in _REQUIREMENTS:
+    for req in _REQUIREMENTS[backend]:
         try:
             req.check_and_handle(console)
         except MissingRequirementError as e:
