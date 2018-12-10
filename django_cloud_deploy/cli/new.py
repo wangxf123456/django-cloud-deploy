@@ -196,8 +196,7 @@ def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
                 actual_parameters.get('credentials', None))
 
     workflow_manager = workflow.WorkflowManager(
-        actual_parameters['credentials'],
-        args.backend)
+        actual_parameters['credentials'], args.backend)
 
     try:
         admin_url = workflow_manager.create_and_deploy_new_project(
