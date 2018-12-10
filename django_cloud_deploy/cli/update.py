@@ -41,11 +41,19 @@ def add_arguments(parser):
         help=('The file path of the credentials file to use for update. '
               'Test only, do not use.'))
 
+    parser.add_argument(
+        '--backend',
+        dest='backend',
+        type=str,
+        default='gke',
+        choices=['gae', 'gke'],
+        help='The desired backend to deploy the Django App on.')
+
 
 def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
 
     try:
-        tool_requirements.check_and_handle_requirements(console)
+        tool_requirements.check_and_handle_requirements(console, args.backend)
     except tool_requirements.MissingRequirementsError as e:
         console.tell('Please install the following requirements:')
         for req in e.missing_requirements:
