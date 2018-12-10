@@ -281,7 +281,8 @@ def check_and_handle_requirements(console: io.IO, backend: str):
 
     Args:
         console: IO, class that handles the input/output with the user.
-        backend: str, Defines which platform on Determines what requirements are needed.
+        backend: str, Defines which platform on Determines what requirements are
+            needed.
     Raises:
         MissingRequirementsError: Error that contains list of missing
             requirements.
