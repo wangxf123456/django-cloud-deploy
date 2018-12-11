@@ -631,35 +631,6 @@ class DjangoSourceFileGenerator(_FileGenerator):
         self.yaml_file_generator = _YAMLFileGenerator()
         self.app_engine_file_generator = _AppEngineFileGenerator()
 
-    def _generate_django_source_files(self,
-                                      project_id: str,
-                                      project_name: str,
-                                      app_name: str,
-                                      project_dir: str,
-                                      database_name: str,
-                                      cloud_storage_bucket_name: str,
-                                      cloud_sql_connection: str):
-        """Generate Django project and settings file.
-
-        Args:
-            project_id: Your GCP project id. This can be got from your GCP
-                console.
-            project_name: Name of your Django project.
-            app_name: The app that you want to create in your project.
-            project_dir: The destination directory path to put your Django
-                project.
-            database_name: Name of your cloud database.
-            cloud_storage_bucket_name: Google Cloud Storage bucket name to
-                serve static content.
-            cloud_sql_connection: Connection string to allow the django app
-                to connect to the cloud sql proxy.
-        """
-
-        self.django_project_generator.generate(project_name, project_dir, app_name)
-        self.django_admin_overwrite_generator.generate(project_id, project_name,
-                                                       project_dir)
-        self.django_app_generator.generate(app_name, project_dir)
-
     @staticmethod
     def _delete_all_files(directory_path: str):
         """Delete all files under the given directory.
@@ -709,10 +680,10 @@ class DjangoSourceFileGenerator(_FileGenerator):
     def generate_all_source_files(self,
                                   project_id: str,
                                   project_name: str,
-                                  app_name: str,
                                   project_dir: str,
                                   database_user: str,
                                   database_password: str,
+                                  app_name: Optional[str],
                                   cloud_sql_proxy_port: Optional[int] = None,
                                   cloud_storage_bucket_name:
                                   Optional[str] = None,
@@ -722,19 +693,19 @@ class DjangoSourceFileGenerator(_FileGenerator):
                                   database_name: Optional[str] = None,
                                   region: Optional[str] = 'us-west1',
                                   image_tag: Optional[str] = None,
-                                  overwrite: Optional[bool] = True):
+                                  from_existing: Optional[bool] = False):
         """Generate all source files of a Django app to be deployed to GCP.
 
         Args:
             project_id: Your GCP project id. This can be got from your GCP
                 console.
             project_name: Name of your Django project.
-            app_name: The app that you want to create in your project.
             project_dir: The destination directory path to put your Django
                 project.
             database_user: The name of the database user. By default it is
                 "postgres". This is required for Django app to access database.
             database_password: The database password to set.
+            app_name: The app that you want to create in your project.
             cloud_sql_proxy_port: The port being forwarded by cloud sql proxy.
             cloud_storage_bucket_name: Google Cloud Storage bucket name to
                 serve static content.
@@ -748,24 +719,25 @@ class DjangoSourceFileGenerator(_FileGenerator):
             database_name: Name of your cloud database.
             region: Where to host the Django project.
             image_tag: A customized docker image tag used in integration tests.
-            overwrite: A flag indicating whether to delete existing files in the
-                provided directory.
+            from_existing: A flag indicating whether to generate source files
+                based on existing files.
         """
 
         project_dir = os.path.abspath(os.path.expanduser(project_dir))
         os.makedirs(project_dir, exist_ok=True)
-        if overwrite:
+        if not from_existing:
             self._delete_all_files(project_dir)
 
         instance_name = instance_name or project_name + '-instance'
         cloud_sql_connection_string = (
             '{}:{}:{}'.format(project_id, region, instance_name))
-        self._generate_django_source_files(project_id, project_name, app_name,
-                                           project_dir,
-                                           database_name,
-                                           cloud_storage_bucket_name,
-                                           cloud_sql_connection_string)
 
+        if not from_existing:
+            self.django_project_generator.generate(project_name, project_dir,
+                                                   app_name)
+            self.django_app_generator.generate(app_name, project_dir)
+        self.django_admin_overwrite_generator.generate(project_id, project_name,
+                                                       project_dir)
         self.settings_file_generator.generate(project_id, project_name,
                                               project_dir,
                                               cloud_sql_connection_string,

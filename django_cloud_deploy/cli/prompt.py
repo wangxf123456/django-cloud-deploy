@@ -528,6 +528,60 @@ class DjangoFilesystemPathUpdate(Prompt):
                 ).format(s))
 
 
+class DjangoFilesystemPathDeploy(Prompt):
+    """Allow the user to file system path for their project."""
+
+    @classmethod
+    def prompt(cls,
+               console: io.IO,
+               step_prompt: str,
+               arguments: Dict[str, Any],
+               credentials: Optional[credentials.Credentials] = None) -> str:
+        """Prompt the user to enter a file system path for their project.
+
+        Args:
+            console: Object to use for user I/O.
+            step_prompt: A prefix showing the current step number e.g. "[1/3]".
+            arguments: The arguments that have already been collected from the
+                user e.g. {"project_id", "project-123"}
+            credentials: The OAuth2 Credentials object to use for api calls
+                during prompt.
+
+        Returns:
+            The value entered by the user.
+        """
+        while True:
+            console.tell(
+                ('{} Enter the directory of the Django project you want to '
+                 'deploy:'.format(step_prompt)))
+            directory = console.ask('Directory path: ')
+            directory = os.path.abspath(os.path.expanduser(directory))
+
+            try:
+                cls.validate(directory)
+            except ValueError as e:
+                console.error(e)
+                continue
+
+            return directory
+
+    @staticmethod
+    def validate(s, credentials: Optional[credentials.Credentials] = None):
+        """Validates that a string is a valid directory path.
+
+        Args:
+            s: The string to validate.
+            credentials: The OAuth2 Credentials object to use for api calls
+                during validation.
+
+        Raises:
+            ValueError: if the input string is not valid.
+        """
+        # TODO: Validate the directory contains Django project files
+        if not os.path.exists(s):
+            raise ValueError(('Directory ["{}"] does not exist.').format(s))
+
+
 class PasswordPrompt(Prompt):
     """Base class for classes that prompt for a password.
 

@@ -78,12 +78,12 @@ class WorkflowManager(object):
             project_creation_mode: ProjectCreationMode.CREATE,
             billing_account_name: str,
             django_project_name: str,
-            django_app_name: str,
             django_superuser_name: str,
             django_superuser_email: str,
             django_superuser_password: str,
             django_directory_path: str,
             database_password: str,
+            django_app_name: Optional[str] = None,
             required_services: Optional[List[Dict[str, str]]] = None,
             required_service_accounts: Optional[
                 Dict[str, List[Dict[str, Any]]]] = None,
@@ -91,7 +91,8 @@ class WorkflowManager(object):
             region: str = 'us-west1',
             cloud_sql_proxy_path: str = 'cloud_sql_proxy',
             backend: str = 'gke',
-            open_browser: bool = True):
+            open_browser: bool = True,
+            from_existing: bool = False):
         """Workflow of deploying a newly generated Django app to GKE.
 
         Args:
@@ -104,7 +105,6 @@ class WorkflowManager(object):
                 for their Google Cloud Platform project. Should look like
                 "billingAccounts/12345-678901-234567"
             django_project_name: The name of the Django project e.g. "mysite".
-            django_app_name: The name of the Django app e.g. "poll".
             django_superuser_name: The login name of the Django superuser e.g.
                 "admin".
             django_superuser_email: The e-mail address of the Django superuser.
@@ -112,6 +112,7 @@ class WorkflowManager(object):
             django_directory_path: The location where the generated Django
                 project code should be stored.
             database_password: The password for the default database user.
+            django_app_name: The name of the Django app e.g. "poll".
             required_services: The services needed to be enabled for deployment.
             required_service_accounts: Service accounts needed to be created for
                 deployment. It should have the following format:
@@ -134,6 +135,9 @@ class WorkflowManager(object):
             backend: The desired backend to deploy the Django App on.
             open_browser: Whether we open the browser to show the deployed app
                 at the end.
+            from_existing: A flag indicating whether to generate source files
+                based on existing files. This flag is equal to False in "new"
+                command and equal to True in "deploy" command.
 
         Returns:
             The url of the deployed Django app.
@@ -191,7 +195,8 @@ class WorkflowManager(object):
             cloud_storage_bucket_name=cloud_storage_bucket_name,
             cloudsql_secrets=cloud_sql_secrets,
             django_secrets=django_secrets,
-            image_tag=image_name)
+            image_tag=image_name,
+            from_existing=from_existing)
 
         print(
             self._generate_section_header(
