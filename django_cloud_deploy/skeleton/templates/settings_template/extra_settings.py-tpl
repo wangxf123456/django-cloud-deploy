@@ -21,9 +21,9 @@ if 'INSTALLED_APPS' not in locals():
 if 'django.contrib.admin' in INSTALLED_APPS:
     INSTALLED_APPS.remove('django.contrib.admin')
 
-INSTALLED_APPS += (
+INSTALLED_APPS += [
     'cloud_admin.apps.CloudAdminConfig',
-)
+]
 
 if 'TEMPLATES' not in locals():
     TEMPLATES = []
@@ -47,7 +47,7 @@ TEMPLATES += [
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.1/howto/static-files/
+# https://docs.djangoproject.com/en/{{ docs_version }}/howto/static-files/
 
 STATIC_ROOT = 'static'
 

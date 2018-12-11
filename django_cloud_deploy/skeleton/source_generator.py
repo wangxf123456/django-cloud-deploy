@@ -732,6 +732,8 @@ class DjangoSourceFileGenerator(_FileGenerator):
         cloud_sql_connection_string = (
             '{}:{}:{}'.format(project_id, region, instance_name))
 
+        # We should not generate Django app files and Django project files if
+        # the provided directory contains an existing Django project.
         if not from_existing:
             self.django_project_generator.generate(project_name, project_dir,
                                                    app_name)

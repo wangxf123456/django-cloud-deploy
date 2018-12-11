@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITconsoleNS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissconsolens and
 # limitatconsolens under the License.
-"""Create and deploy a new Django project on GKE."""
+"""Create and deploy an existing Django project on GKE or GAE."""
 
 import argparse
 import sys
@@ -38,8 +38,7 @@ def add_arguments(parser):
     parser.add_argument(
         '--project-path',
         dest='django_directory_path',
-        help='The location where the generated Django project code should be '
-        'stored.')
+        help='The location of your existing Django project.')
 
     parser.add_argument(
         '--database-password',
