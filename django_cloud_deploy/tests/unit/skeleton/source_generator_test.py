@@ -474,8 +474,11 @@ class DjangoSourceFileGeneratorTest(FileGeneratorTest):
         project_id = project_name = 'test_generate_all_source_file'
         app_name = 'polls'
         self._generator.generate_all_source_files(
-            project_id=project_id, project_name=project_name, app_name=app_name,
-            project_dir=self._project_dir, database_user='fake_db_user',
+            project_id=project_id,
+            project_name=project_name,
+            app_name=app_name,
+            project_dir=self._project_dir,
+            database_user='fake_db_user',
             database_password='fake_db_password')
         self._test_project_structure(project_name, app_name, self._project_dir)
 
@@ -483,13 +486,19 @@ class DjangoSourceFileGeneratorTest(FileGeneratorTest):
         project_id = project_name = 'test_delete_existing_files1'
         app_name = 'polls1'
         self._generator.generate_all_source_files(
-            project_id=project_id, project_name=project_name, app_name=app_name,
-            project_dir=self._project_dir, database_user='fake_db_user',
+            project_id=project_id,
+            project_name=project_name,
+            app_name=app_name,
+            project_dir=self._project_dir,
+            database_user='fake_db_user',
             database_password='fake_db_password')
         project_id = project_name = 'test_delete_existing_files2'
         self._generator.generate_all_source_files(
-            project_id=project_id, project_name=project_name, app_name=app_name,
-            project_dir=self._project_dir, database_user='fake_db_user',
+            project_id=project_id,
+            project_name=project_name,
+            app_name=app_name,
+            project_dir=self._project_dir,
+            database_user='fake_db_user',
             database_password='fake_db_password')
         self._test_project_structure(project_name, app_name, self._project_dir)
         files_list = os.listdir(os.path.join(self._project_dir, project_name))
@@ -503,8 +512,10 @@ class DjangoSourceFileGeneratorTest(FileGeneratorTest):
         # This should not throw exceptions.
         for _ in range(3):
             self._generator.generate_all_source_files(
-                project_id=project_id, project_name=project_name,
-                app_name=app_name, project_dir=self._project_dir,
+                project_id=project_id,
+                project_name=project_name,
+                app_name=app_name,
+                project_dir=self._project_dir,
                 database_user='fake_db_user',
                 database_password='fake_db_password')
         self._test_project_structure(project_name, app_name, self._project_dir)
@@ -515,8 +526,11 @@ class DjangoSourceFileGeneratorTest(FileGeneratorTest):
 
         project_dir = os.path.join(self._project_dir, 'dir_not_exist')
         self._generator.generate_all_source_files(
-            project_id=project_id, project_name=project_name, app_name=app_name,
-            project_dir=project_dir, database_user='fake_db_user',
+            project_id=project_id,
+            project_name=project_name,
+            app_name=app_name,
+            project_dir=project_dir,
+            database_user='fake_db_user',
             database_password='fake_db_password')
         self._test_project_structure(project_name, app_name, project_dir)
 
@@ -528,7 +542,11 @@ class DjangoSourceFileGeneratorTest(FileGeneratorTest):
         os.mkdir(existing_app_path)
         management.call_command('startapp', app_name, existing_app_path)
         self._generator.generate_all_source_files(
-            project_id=project_id, project_name=project_name, app_name=app_name,
-            project_dir=self._project_dir, database_user='fake_db_user',
-            database_password='fake_db_password', from_existing=True)
+            project_id=project_id,
+            project_name=project_name,
+            app_name=app_name,
+            project_dir=self._project_dir,
+            database_user='fake_db_user',
+            database_password='fake_db_password',
+            from_existing=True)
         self._test_project_structure(project_name, app_name, self._project_dir)
