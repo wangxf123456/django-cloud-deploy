@@ -727,7 +727,6 @@ class DjangoSourceFileGenerator(_FileGenerator):
         os.makedirs(project_dir, exist_ok=True)
         if not from_existing:
             self._delete_all_files(project_dir)
-
         instance_name = instance_name or project_name + '-instance'
         cloud_sql_connection_string = (
             '{}:{}:{}'.format(project_id, region, instance_name))
