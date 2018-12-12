@@ -68,9 +68,8 @@ class DatabaseWorkflow(object):
                                                    database_name)
         self._database_client.set_database_password(
             project_id, instance_name, database_user, database_password)
-        self._database_client.migrate_database(project_id, instance_name,
-                                               cloud_sql_proxy_path, region,
-                                               port)
+        self._database_client.migrate_database(
+            project_id, instance_name, cloud_sql_proxy_path, region, port)
         self._database_client.create_super_user(
             superuser_name, superuser_email, superuser_password, project_id,
             instance_name, cloud_sql_proxy_path, region, port)
@@ -98,9 +97,8 @@ class DatabaseWorkflow(object):
             region: Where the Cloud SQL instance is in.
             port: The port being forwarded by cloud sql proxy.
         """
-        self._database_client.migrate_database(project_id, instance_name,
-                                               cloud_sql_proxy_path, region,
-                                               port)
+        self._database_client.migrate_database(
+            project_id, instance_name, cloud_sql_proxy_path, region, port)
 
     def with_cloud_sql_proxy(self,
                              project_id: str,
