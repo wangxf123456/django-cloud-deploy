@@ -47,7 +47,7 @@ def add_arguments(parser):
         type=str,
         default='gke',
         choices=['gae', 'gke'],
-        help='The desired backend to deploy the Django App on.')
+        help='The desired backend to update the Django App on.')
 
 
 def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):

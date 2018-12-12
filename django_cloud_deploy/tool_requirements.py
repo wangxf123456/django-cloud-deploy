@@ -280,8 +280,8 @@ def check_and_handle_requirements(console: io.IO, backend: str):
     """Checks that requirements are installed. Attempts to install missing ones.
 
     Args:
-        console: IO, class that handles the input/output with the user.
-        backend: str, Defines which platform on Determines what requirements are
+        console: Handles the input/output with the user.
+        backend: Defines which platform on determines what requirements are
             needed.
     Raises:
         MissingRequirementsError: Error that contains list of missing
