@@ -299,8 +299,7 @@ class WorkflowManager(object):
 
         self._source_generator.setup_django_environment(
             django_directory_path, django_project_name, database_username,
-            database_password)
-
+            database_password, cloud_sql_proxy_port)
         print(
             self._generate_section_header(1, 'Database Migration',
                                           self._TOTAL_UPDATE_STEPS))

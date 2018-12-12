@@ -329,14 +329,11 @@ class _SettingsFileGenerator(_Jinja2FileGenerator):
                  project_name: str,
                  project_dir: str,
                  cloud_sql_connection: str,
-                 cloud_sql_proxy_port: Optional[int] = None,
                  database_name: Optional[str] = None,
                  cloud_storage_bucket_name: Optional[str] = None):
         if self.generated(project_dir, project_name):
             return
 
-        if cloud_sql_proxy_port:
-            os.environ.setdefault('CLOUD_SQL_PROXY_PORT', cloud_sql_proxy_port)
         if self.exist(project_dir, project_name):
             self._generate_from_existing(project_id, project_name, project_dir,
                                          cloud_sql_connection, database_name,
@@ -680,7 +677,8 @@ class DjangoSourceFileGenerator(_FileGenerator):
                                  project_dir: str,
                                  project_name: str,
                                  database_user: str,
-                                 database_password: str):
+                                 database_password: str,
+                                 cloud_sql_proxy_port: Optional[int] = None):
         """Setup Django environment.
 
         This makes Django command calls afterwards affect the newly generated
@@ -692,9 +690,13 @@ class DjangoSourceFileGenerator(_FileGenerator):
             database_user: The name of the database user. By default it is
                 "postgres". This is required for Django app to access database.
             database_password: The database password to set.
+            cloud_sql_proxy_port: The port being forwarded by cloud sql proxy.
         """
         os.environ.setdefault('DATABASE_USER', database_user)
         os.environ.setdefault('DATABASE_PASSWORD', database_password)
+        if cloud_sql_proxy_port:
+            os.environ.setdefault('CLOUD_SQL_PROXY_PORT',
+                                  str(cloud_sql_proxy_port))
         sys.path.append(project_dir)
         os.environ['DJANGO_SETTINGS_MODULE'] = '{}.remote_settings'.format(
             project_name)
@@ -763,7 +765,6 @@ class DjangoSourceFileGenerator(_FileGenerator):
         self.settings_file_generator.generate(project_id, project_name,
                                               project_dir,
                                               cloud_sql_connection_string,
-                                              cloud_sql_proxy_port,
                                               database_name,
                                               cloud_storage_bucket_name)
         self.docker_file_generator.generate(project_name, project_dir)
@@ -773,4 +774,8 @@ class DjangoSourceFileGenerator(_FileGenerator):
                                           cloudsql_secrets, django_secrets)
         self.app_engine_file_generator.generate(project_name, project_dir)
         self.setup_django_environment(
-            project_dir, project_name, database_user, database_password)
+            project_dir=project_dir,
+            project_name=project_name,
+            database_user=database_user,
+            database_password=database_password,
+            cloud_sql_proxy_port=cloud_sql_proxy_port)
