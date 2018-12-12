@@ -329,10 +329,14 @@ class _SettingsFileGenerator(_Jinja2FileGenerator):
                  project_name: str,
                  project_dir: str,
                  cloud_sql_connection: str,
+                 cloud_sql_proxy_port: Optional[int] = None,
                  database_name: Optional[str] = None,
                  cloud_storage_bucket_name: Optional[str] = None):
         if self.generated(project_dir, project_name):
             return
+
+        if cloud_sql_proxy_port:
+            os.environ.setdefault('CLOUD_SQL_PROXY_PORT', cloud_sql_proxy_port)
         if self.exist(project_dir, project_name):
             self._generate_from_existing(project_id, project_name, project_dir,
                                          cloud_sql_connection, database_name,
@@ -657,10 +661,6 @@ class DjangoSourceFileGenerator(_FileGenerator):
         self.django_admin_overwrite_generator.generate(project_id, project_name,
                                                        project_dir)
         self.django_app_generator.generate(app_name, project_dir)
-        self.settings_file_generator.generate(project_id, project_name,
-                                              project_dir, cloud_sql_connection,
-                                              database_name,
-                                              cloud_storage_bucket_name)
 
     @staticmethod
     def _delete_all_files(directory_path: str):
@@ -707,6 +707,7 @@ class DjangoSourceFileGenerator(_FileGenerator):
                                   project_dir: str,
                                   database_user: str,
                                   database_password: str,
+                                  cloud_sql_proxy_port: Optional[int] = None,
                                   cloud_storage_bucket_name:
                                   Optional[str] = None,
                                   cloudsql_secrets: Optional[List[str]] = None,
@@ -728,6 +729,7 @@ class DjangoSourceFileGenerator(_FileGenerator):
             database_user: The name of the database user. By default it is
                 "postgres". This is required for Django app to access database.
             database_password: The database password to set.
+            cloud_sql_proxy_port: The port being forwarded by cloud sql proxy.
             cloud_storage_bucket_name: Google Cloud Storage bucket name to
                 serve static content.
             cloudsql_secrets: A list of secrets needed by cloud sql proxy
@@ -757,6 +759,13 @@ class DjangoSourceFileGenerator(_FileGenerator):
                                            database_name,
                                            cloud_storage_bucket_name,
                                            cloud_sql_connection_string)
+
+        self.settings_file_generator.generate(project_id, project_name,
+                                              project_dir,
+                                              cloud_sql_connection_string,
+                                              cloud_sql_proxy_port,
+                                              database_name,
+                                              cloud_storage_bucket_name)
         self.docker_file_generator.generate(project_name, project_dir)
         self.dependency_file_generator.generate(project_dir)
         self.yaml_file_generator.generate(project_dir, project_name, project_id,
