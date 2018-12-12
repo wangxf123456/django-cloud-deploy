@@ -692,11 +692,10 @@ class DjangoSourceFileGenerator(_FileGenerator):
             database_password: The database password to set.
             cloud_sql_proxy_port: The port being forwarded by cloud sql proxy.
         """
-        os.environ.setdefault('DATABASE_USER', database_user)
-        os.environ.setdefault('DATABASE_PASSWORD', database_password)
+        os.environ['DATABASE_USER'] = database_user
+        os.environ['DATABASE_PASSWORD'] = database_password
         if cloud_sql_proxy_port:
-            os.environ.setdefault('CLOUD_SQL_PROXY_PORT',
-                                  str(cloud_sql_proxy_port))
+            os.environ['CLOUD_SQL_PROXY_PORT'] = str(cloud_sql_proxy_port)
         sys.path.append(project_dir)
         os.environ['DJANGO_SETTINGS_MODULE'] = '{}.remote_settings'.format(
             project_name)

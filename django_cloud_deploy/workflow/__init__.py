@@ -280,7 +280,6 @@ class WorkflowManager(object):
         project_id = config_obj.get('project_id')
         django_project_name = config_obj.get('django_project_name')
         cloud_sql_proxy_port = portpicker.pick_unused_port()
-
         if not project_id or not django_project_name:
             raise InvalidConfigError(
                 'Configuration file in [{}] does not contain enough '
