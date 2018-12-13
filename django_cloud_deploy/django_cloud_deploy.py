@@ -16,13 +16,28 @@ import argparse
 import sys
 import warnings
 
-import django_cloud_deploy.crash_handling
+from django_cloud_deploy import tool_requirements
+from django_cloud_deploy.cli import io
 from django_cloud_deploy.cli import new
 from django_cloud_deploy.cli import update
+import django_cloud_deploy.crash_handling
+
+
+def _check_requirements(args):
+    console = io.ConsoleIO()
+    try:
+        tool_requirements.check_and_handle_requirements(
+            io.ConsoleIO(), args.backend)
+    except tool_requirements.MissingRequirementsError as e:
+        console.tell('Please install the following requirements:')
+        for req in e.missing_requirements:
+            console.tell('* {}: {}'.format(req.name,
+                                           req.how_to_install_message))
 
 
 def _update(args):
     """Update the Django project on GKE."""
+    _check_requirements(args)
     try:
         update.main(args)
     except Exception as e:
@@ -32,6 +47,7 @@ def _update(args):
 
 def _new(args):
     """Create a new Django GKE project."""
+    _check_requirements(args)
     try:
         new.main(args)
     except Exception as e:
