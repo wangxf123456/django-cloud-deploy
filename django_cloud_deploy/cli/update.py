@@ -52,6 +52,10 @@ def add_arguments(parser):
 
 def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
 
+    if not tool_requirements.check_and_handle_requirements(
+            console, args.backend):
+        return
+
     prompt_order = [
         'credentials',
         'database_password',

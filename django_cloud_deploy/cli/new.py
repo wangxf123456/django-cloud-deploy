@@ -16,6 +16,7 @@
 import argparse
 import sys
 
+from django_cloud_deploy import tool_requirements
 from django_cloud_deploy import workflow
 from django_cloud_deploy.cli import io
 from django_cloud_deploy.cli import prompt
@@ -112,6 +113,10 @@ def add_arguments(parser):
 
 def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
 
+    if not tool_requirements.check_and_handle_requirements(
+            console, args.backend):
+        return
+
     prompt_order = [
         'credentials',
         'project_id',
@@ -188,24 +193,28 @@ def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
     workflow_manager = workflow.WorkflowManager(
         actual_parameters['credentials'], args.backend)
 
-    url = workflow_manager.create_and_deploy_new_project(
-        project_name=actual_parameters['project_name'],
-        project_id=actual_parameters['project_id'],
-        project_creation_mode=actual_parameters['project_creation_mode'],
-        billing_account_name=actual_parameters['billing_account_name'],
-        django_project_name=actual_parameters['django_project_name'],
-        django_app_name=actual_parameters['django_app_name'],
-        django_superuser_name=actual_parameters['django_superuser_login'],
-        django_superuser_email=actual_parameters['django_superuser_email'],
-        django_superuser_password=actual_parameters[
-            'django_superuser_password'],
-        django_directory_path=actual_parameters['django_directory_path'],
-        database_password=actual_parameters['database_password'],
-        required_services=actual_parameters['services'],
-        required_service_accounts=actual_parameters['service_accounts'],
-        cloud_storage_bucket_name=actual_parameters['bucket_name'],
-        backend=args.backend)
-    return url
+    try:
+        admin_url = workflow_manager.create_and_deploy_new_project(
+            project_name=actual_parameters['project_name'],
+            project_id=actual_parameters['project_id'],
+            project_creation_mode=actual_parameters['project_creation_mode'],
+            billing_account_name=actual_parameters['billing_account_name'],
+            django_project_name=actual_parameters['django_project_name'],
+            django_app_name=actual_parameters['django_app_name'],
+            django_superuser_name=actual_parameters['django_superuser_login'],
+            django_superuser_email=actual_parameters['django_superuser_email'],
+            django_superuser_password=actual_parameters[
+                'django_superuser_password'],
+            django_directory_path=actual_parameters['django_directory_path'],
+            database_password=actual_parameters['database_password'],
+            required_services=actual_parameters['services'],
+            required_service_accounts=actual_parameters['service_accounts'],
+            cloud_storage_bucket_name=actual_parameters['bucket_name'],
+            backend=args.backend)
+        return admin_url
+    except workflow.ProjectExistsError:
+        console.error('A project with id "{}" already exists'.format(
+            actual_parameters['project_id']))
 
 
 if __name__ == '__main__':
