@@ -33,11 +33,14 @@ def _check_requirements(args):
         for req in e.missing_requirements:
             console.tell('* {}: {}'.format(req.name,
                                            req.how_to_install_message))
+        return False
+    return True
 
 
 def _update(args):
     """Update the Django project on GKE."""
-    _check_requirements(args)
+    if not _check_requirements(args):
+        return
     try:
         update.main(args)
     except Exception as e:
@@ -47,7 +50,8 @@ def _update(args):
 
 def _new(args):
     """Create a new Django GKE project."""
-    _check_requirements(args)
+    if not _check_requirements(args):
+        return
     try:
         new.main(args)
     except Exception as e:
