@@ -42,7 +42,7 @@ def generate_url_link():
 def _get_params():
     return [
         ('project', '{{ project_id }}')
-        ('advancedFilter',_get_query_filter().replace(' AND ', '\n'))
+        ('advancedFilter', _get_query_filter().replace(' AND ', '\n'))
     ]
 
 def _get_query_filter():
