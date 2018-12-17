@@ -40,21 +40,10 @@ def generate_url_link():
     return base_link.format(params)
 
 def _get_params():
-    if os.getenv('GAE_APPLICATION', None):
-        return [
-            ('project', '{{ project_id }}'),
-            ('logName', 'projects/{{ project_id }}/logs/stdout'),
-            ('logName', 'projects/{{ project_id }}/logs/stderr'),
-        ]
-    else:
-        return [
-            ('resource.type', 'container'),
-            ('resource.labels.cluster_name', '{{ project_name }}'),
-            ('resource.labels.namespace_id', 'default'),
-            ('resource.labels.project_id', '{{ project_id }}'),
-            ('resource.labels.zone', 'us-west1-a'),
-            ('resource.labels.container_name', '{{ project_name }}-app')
-        ]
+    return [
+        ('project', '{{ project_id }}')
+        ('advancedFilter',_get_query_filter().replace(' AND ', '\n'))
+    ]
 
 def _get_query_filter():
     if os.getenv('GAE_APPLICATION', None):
