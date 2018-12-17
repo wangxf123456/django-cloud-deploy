@@ -28,9 +28,10 @@ def get_logs(logging_client, page_size=10):
     iterator = logging_client.list_entries(order_by=DESCENDING,
                                            filter_=query_filter,
                                            page_size=page_size)
-    pages = iterator.pages
-
-    logs = [entry.payload for entry in next(pages)]
+    results = next(iterator.pages)
+    logs = []
+    while results.remaining:
+        logs.append(next(results).payload)
     return logs
 
 
