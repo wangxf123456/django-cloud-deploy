@@ -1,3 +1,4 @@
+import itertools
 import os
 from google.cloud import logging
 from google.cloud.logging import DESCENDING
@@ -18,7 +19,7 @@ def generate_logging_client():
         return None
 
 
-def get_logs(logging_client, page_size=10):
+def get_logs(logging_client, num_logs=10):
     if logging_client is None:
         return ['Check console for logs.']
 
@@ -27,12 +28,11 @@ def get_logs(logging_client, page_size=10):
     # Show ten entries
     iterator = logging_client.list_entries(order_by=DESCENDING,
                                            filter_=query_filter,
-                                           page_size=page_size)
-    results = next(iterator.pages)
-    logs = []
-    while results.remaining:
-        logs.append(next(results).payload)
-    return logs
+                                           page_size=num_logs)
+
+    # Multiple API calls may be made
+    return [log_entry.payload
+            for log_entry in itertools.islice(iterator, num_logs)]
 
 
 def _get_query_filter():
