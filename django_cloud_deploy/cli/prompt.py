@@ -358,7 +358,7 @@ class ExistingProjectIdPrompt(ProjectIdPrompt):
                credentials: Optional[credentials.Credentials] = None) -> str:
         """Prompt the user to a Google Cloud Platform project id.
 
-        The user may pass in the a project_id and we want to validate that
+        If the user supplies the project_id as a flag we want to validate that
         it exists. We tell the user to supply a new one if it does not.
 
         Args:
