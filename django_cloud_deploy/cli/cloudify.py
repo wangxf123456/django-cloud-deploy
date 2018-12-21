@@ -103,13 +103,8 @@ def add_arguments(parser):
 
 def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
 
-    try:
-        tool_requirements.check_and_handle_requirements(console)
-    except tool_requirements.MissingRequirementsError as e:
-        console.tell('Please install the following requirements:')
-        for req in e.missing_requirements:
-            console.tell('* {}: {}'.format(req.name,
-                                           req.how_to_install_message))
+    if not tool_requirements.check_and_handle_requirements(
+            console, args.backend):
         return
 
     prompt_order = [
@@ -184,10 +179,10 @@ def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
     django_directory_path = actual_parameters['django_directory_path']
     django_project_name = utils.get_django_project_name(django_directory_path)
     workflow_manager = workflow.WorkflowManager(
-        actual_parameters['credentials'])
+        actual_parameters['credentials'], args.backend)
 
     try:
-        admin_url = workflow_manager.create_and_deploy_new_project(
+        url = workflow_manager.create_and_deploy_new_project(
             project_name=actual_parameters['project_name'],
             project_id=actual_parameters['project_id'],
             project_creation_mode=actual_parameters['project_creation_mode'],
@@ -203,8 +198,8 @@ def main(args: argparse.Namespace, console: io.IO = io.ConsoleIO()):
             required_service_accounts=actual_parameters['service_accounts'],
             cloud_storage_bucket_name=actual_parameters['bucket_name'],
             backend=args.backend,
-            from_existing=True)
-        return admin_url
+            overwrite=False)
+        return url
     except workflow.ProjectExistsError:
         console.error('A project with id "{}" already exists'.format(
             actual_parameters['project_id']))

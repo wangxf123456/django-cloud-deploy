@@ -16,7 +16,7 @@ import argparse
 import sys
 import warnings
 
-from django_cloud_deploy.cli import deploy
+from django_cloud_deploy.cli import cloudify
 from django_cloud_deploy.cli import new
 from django_cloud_deploy.cli import update
 import django_cloud_deploy.crash_handling
@@ -40,9 +40,14 @@ def _new(args):
             e, 'django-cloud-deploy new')
 
 
-def _deploy(args):
+def _cloudify(args):
     """Deploy an existing Django project."""
-    deploy.main(args)
+    try:
+        cloudify.main(args)
+    except Exception as e:
+        django_cloud_deploy.crash_handling.handle_crash(
+            e, 'django-cloud-deploy cloudify')
+
 
 def main():
     warnings.filterwarnings(
@@ -64,11 +69,11 @@ def main():
                      'django_cloud_deploy, on Google Kubernetes Engine.'))
     update_parser.set_defaults(func=_update)
     update.add_arguments(update_parser)
-    deploy_parser = subparsers.add_parser(
-        'deploy',
+    cloudify_parser = subparsers.add_parser(
+        'cloudify',
         description=('Deploys an existing Django project.'))
-    deploy_parser.set_defaults(func=_deploy)
-    deploy.add_arguments(deploy_parser)
+    cloudify_parser.set_defaults(func=_cloudify)
+    cloudify.add_arguments(cloudify_parser)
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)

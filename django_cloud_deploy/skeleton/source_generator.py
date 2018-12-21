@@ -693,7 +693,7 @@ class DjangoSourceFileGenerator(_FileGenerator):
                                   database_name: Optional[str] = None,
                                   region: Optional[str] = 'us-west1',
                                   image_tag: Optional[str] = None,
-                                  from_existing: Optional[bool] = False):
+                                  overwrite: Optional[bool] = True):
         """Generate all source files of a Django app to be deployed to GCP.
 
         Args:
@@ -719,13 +719,13 @@ class DjangoSourceFileGenerator(_FileGenerator):
             database_name: Name of your cloud database.
             region: Where to host the Django project.
             image_tag: A customized docker image tag used in integration tests.
-            from_existing: A flag indicating whether to generate source files
-                based on existing files.
+            overwrite: A flag indicating whether to delete existing files in the
+                provided directory.
         """
 
         project_dir = os.path.abspath(os.path.expanduser(project_dir))
         os.makedirs(project_dir, exist_ok=True)
-        if not from_existing:
+        if overwrite:
             self._delete_all_files(project_dir)
         instance_name = instance_name or project_name + '-instance'
         cloud_sql_connection_string = (
@@ -733,7 +733,7 @@ class DjangoSourceFileGenerator(_FileGenerator):
 
         # We should not generate Django app files and Django project files if
         # the provided directory contains an existing Django project.
-        if not from_existing:
+        if overwrite:
             self.django_project_generator.generate(project_name, project_dir,
                                                    app_name)
             self.django_app_generator.generate(app_name, project_dir)

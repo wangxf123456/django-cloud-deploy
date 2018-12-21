@@ -548,5 +548,5 @@ class DjangoSourceFileGeneratorTest(FileGeneratorTest):
             project_dir=self._project_dir,
             database_user='fake_db_user',
             database_password='fake_db_password',
-            from_existing=True)
+            overwrite=False)
         self._test_project_structure(project_name, app_name, self._project_dir)

@@ -92,7 +92,7 @@ class WorkflowManager(object):
             cloud_sql_proxy_path: str = 'cloud_sql_proxy',
             backend: str = 'gke',
             open_browser: bool = True,
-            from_existing: bool = False):
+            overwrite: bool = True):
         """Workflow of deploying a newly generated Django app to GKE.
 
         Args:
@@ -135,9 +135,9 @@ class WorkflowManager(object):
             backend: The desired backend to deploy the Django App on.
             open_browser: Whether we open the browser to show the deployed app
                 at the end.
-            from_existing: A flag indicating whether to generate source files
-                based on existing files. This flag is equal to False in "new"
-                command and equal to True in "deploy" command.
+            overwrite: A flag indicating whether to delete existing files in the
+                provided directory. This flag is equal to True in "new"
+                command and equal to False in "cloudify" command.
 
         Returns:
             The url of the deployed Django app.
@@ -196,7 +196,7 @@ class WorkflowManager(object):
             cloudsql_secrets=cloud_sql_secrets,
             django_secrets=django_secrets,
             image_tag=image_name,
-            from_existing=from_existing)
+            overwrite=overwrite)
 
         print(
             self._generate_section_header(
