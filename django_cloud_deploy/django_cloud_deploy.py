@@ -32,11 +32,8 @@ def _update(args):
 
 def _new(args):
     """Create a new Django GKE project."""
-    try:
-        new.main(args)
-    except Exception as e:
-        django_cloud_deploy.crash_handling.handle_crash(
-            e, 'django-cloud-deploy new')
+    cli = new.New()
+    cli.execute(args)
 
 
 def main():
@@ -52,7 +49,7 @@ def main():
         description=('Create a new Django project and deploy it to Google '
                      'Kubernetes Engine.'))
     new_parser.set_defaults(func=_new)
-    new.add_arguments(new_parser)
+    new.New.add_arguments(new_parser)
     update_parser = subparsers.add_parser(
         'update',
         description=('Deploys an Django project, previously created with '
