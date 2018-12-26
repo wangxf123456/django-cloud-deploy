@@ -37,6 +37,7 @@ class DeploygaeWorkflow(object):
             django_directory_path: Path where the django source files are
                 located.
             region: Region to deploy the django app.
+            is_update: Flag to indicate if deploying an existing app.
 
         Raises:
             DeployNewAppError: If unable to deploy the app.
