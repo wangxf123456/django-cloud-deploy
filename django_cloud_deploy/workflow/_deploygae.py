@@ -28,7 +28,8 @@ class DeploygaeWorkflow(object):
     def deploy_gae_app(self,
                        project_id: str,
                        django_directory_path: str,
-                       region: str = 'us-west2') -> str:
+                       region: str = 'us-west2',
+                       is_update: bool = False) -> str:
         """Uses Gcloud SDK to upload to GAE.
 
         Args:
@@ -49,9 +50,10 @@ class DeploygaeWorkflow(object):
         args = ['app', 'deploy', app_yaml_path, project]
         process = pexpect.spawn('gcloud', args)
         try:
-            index = process.expect(
-                ['\[{}\]\s*{}'.format(i, region) for i in range(1, 10)])
-            process.sendline(str(index))
+            if is_update:
+                index = process.expect(
+                    ['\[{}\]\s*{}'.format(i, region) for i in range(1, 10)])
+                process.sendline(str(index))
             process.expect('Do you want to continue (Y/n)?')
             process.sendline('Y')
             process.expect('Deployed service', timeout=600)  # 10 Min Timeout
