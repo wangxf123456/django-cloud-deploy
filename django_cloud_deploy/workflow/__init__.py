@@ -335,7 +335,7 @@ class WorkflowManager(object):
                 django_project_name, image_name)
         else:
             app_url = self._deploygae_workflow.deploy_gae_app(
-                project_id, django_directory_path, False)
+                project_id, django_directory_path, is_new=False)
         print('Your app is running at {}.'.format(app_url))
         if open_browser:
             webbrowser.open(app_url)
