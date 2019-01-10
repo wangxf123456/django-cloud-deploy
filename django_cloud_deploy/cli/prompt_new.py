@@ -1,6 +1,6 @@
 import abc
 import string
-from typing import List, Optional, Callable
+from typing import Any, List, Optional, Callable
 
 from django_cloud_deploy.cli import io
 
@@ -17,11 +17,11 @@ class Prompt(object):
         """
         pass
 
-    def validate(self, s: str) -> bool:
+    def validate(self, s: Any) -> bool:
         """Validates that a string is valid for this prompt type.
 
         Args:
-            s: The string to validate.
+            s: The value to validate.
 
         Raises:
             ValueError: if the input string is not valid.
@@ -44,10 +44,10 @@ class AskPrompt(Prompt):
                  console: io.IO,
                  validate: Optional[Callable[[str], bool]] = None,
                  default: Optional[str] = None):
-        self.question = question
-        self.validate = validate or (lambda s: True)
-        self.console = console
-        self.default = default
+        self._question = question
+        self._validate = validate or (lambda s: True)
+        self._console = console
+        self._default = default
 
     def prompt(self) -> str:
         """Prompt the user to enter some information.
@@ -55,15 +55,28 @@ class AskPrompt(Prompt):
         Returns:
             The value entered by the user.
         """
-        answer = self.console.ask(self.question)
-        if self.default and answer is '':
-            answer = self.default
-        try:
-            self.validate(answer)
-            return answer
-        except ValueError as e:
-            self.console.error(e)
-            return self.prompt()
+        while True:
+            try:
+                answer = self._console.ask(self._question)
+                if self._default and answer is '':
+                    answer = self._default
+                self._validate(answer)
+                break
+            except ValueError as e:
+                self._console.error(e)
+
+        return answer
+
+    def validate(self, s: str) -> bool:
+        """Uses the validate function that was passed in the init.
+
+        Args:
+            s: The value to validate.
+
+        Raises:
+            ValueError: if the input string is not valid.
+        """
+        return self._validate(s)
 
 
 class MultipleChoicePrompt(Prompt):
@@ -81,10 +94,10 @@ class MultipleChoicePrompt(Prompt):
                  options: List[str],
                  console: io.IO,
                  default: Optional[str] = None):
-        self.question = question
-        self.options = options
-        self.console = console
-        self.default = default
+        self._question = question
+        self._options = options
+        self._console = console
+        self._default = default
 
     def prompt(self) -> str:
         """Prompt the user to choose from a list of options.
@@ -94,26 +107,30 @@ class MultipleChoicePrompt(Prompt):
         """
         options_formatted = [
             '{}. {}'.format(str(i), opt)
-            for i, opt in enumerate(self.options, 1)
+            for i, opt in enumerate(self._options, 1)
         ]
         options = '\n'.join(options_formatted)
-        answer = self.console.ask(self.question.format(options))
-        try:
-            self.validate(answer)
-            return answer
-        except ValueError as e:
-            self.console.error(e)
-            return self.prompt()
+        answer = self._console.ask('\n'.join([self._question, options]))
+
+        while True:
+            try:
+                self.validate(answer)
+                break
+            except ValueError as e:
+                self._console.error(e)
+                answer = self._console.ask(self._question)
+
+        return answer
 
     def validate(self, s: str):
         """Validates the option chosen is valid."""
-        if self.default is not None and s == '':
+        if self._default is not None and s == '':
             return True
 
         if not str.isnumeric(s):
             raise ValueError('Please enter a numeric value')
 
-        if 1 <= int(s) <= (len(self.options) + 1):
+        if 1 <= int(s) <= (len(self._options) + 1):
             return True
         else:
             raise ValueError('Value is not in range')
@@ -132,9 +149,9 @@ class BinaryPrompt(Prompt):
                  question: str,
                  console: io.IO,
                  default: Optional[str] = None):
-        self.question = question
-        self.console = console
-        self.default = default
+        self._question = question
+        self._console = console
+        self._default = default
 
     def prompt(self):
         """Prompt the user to choose from a yes or no question.
@@ -142,17 +159,25 @@ class BinaryPrompt(Prompt):
         Returns:
             The choice entered by the user.
         """
-        answer = self.console.ask(self.question)
-        if self.default and answer is '':
-            answer = self.default
-        if self.validate(answer):
-            return answer
-        else:
-            return self.prompt()
+
+        while True:
+            try:
+                answer = self._console.ask(self._question)
+                if self._default and answer is '':
+                    answer = self._default
+                self.validate(answer)
+                break
+            except ValueError as e:
+                self._console.error(e)
+
+        return answer
 
     def validate(self, s: str):
         """Ensures value is yes or no."""
-        return s.lower() in ['y', 'n']
+        if s.lower() not in ['y', 'n']:
+            raise ValueError('Please respond using "y" or "n"')
+
+        return s.lower() not in ['y', 'n']
 
 
 class PasswordPrompt(Prompt):
