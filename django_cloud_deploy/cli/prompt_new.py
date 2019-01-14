@@ -17,7 +17,7 @@ class Prompt(object):
         """
         pass
 
-    def validate(self, s: Any) -> bool:
+    def validate(self, s: str):
         """Validates that a string is valid for this prompt type.
 
         Args:
@@ -42,10 +42,10 @@ class AskPrompt(Prompt):
     def __init__(self,
                  question: str,
                  console: io.IO,
-                 validate: Optional[Callable[[str], bool]] = None,
+                 validate: Optional[Callable[[str], None]] = None,
                  default: Optional[str] = None):
         self._question = question
-        self._validate = validate or (lambda s: True)
+        self._validate = validate or (lambda s: None)
         self._console = console
         self._default = default
 
@@ -67,7 +67,7 @@ class AskPrompt(Prompt):
 
         return answer
 
-    def validate(self, s: str) -> bool:
+    def validate(self, s: str):
         """Uses the validate function that was passed in the init.
 
         Args:
@@ -125,13 +125,13 @@ class MultipleChoicePrompt(Prompt):
     def validate(self, s: str):
         """Validates the option chosen is valid."""
         if self._default is not None and s == '':
-            return True
+            return
 
         if not str.isnumeric(s):
             raise ValueError('Please enter a numeric value')
 
         if 1 <= int(s) <= (len(self._options) + 1):
-            return True
+            return
         else:
             raise ValueError('Value is not in range')
 
@@ -177,7 +177,7 @@ class BinaryPrompt(Prompt):
         if s.lower() not in ['y', 'n']:
             raise ValueError('Please respond using "y" or "n"')
 
-        return s.lower() not in ['y', 'n']
+        return
 
 
 class PasswordPrompt(Prompt):
@@ -209,7 +209,7 @@ class PasswordPrompt(Prompt):
                 continue
             return password1
 
-    def validate(self, s) -> bool:
+    def validate(self, s):
         """Validates that a string is a valid password.
 
         Args:
@@ -226,4 +226,4 @@ class PasswordPrompt(Prompt):
             raise ValueError('Invalid character in password: '
                              'use letters, numbers and punctuation')
 
-        return True
+        return

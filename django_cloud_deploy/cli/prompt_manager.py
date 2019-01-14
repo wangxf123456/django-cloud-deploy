@@ -1,13 +1,10 @@
-import abc
 import os.path
 import random
 import re
 import string
 import time
-from typing import Any, Callable, Iterator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import webbrowser
-
-from google.auth import credentials
 
 from django_cloud_deploy import workflow
 from django_cloud_deploy.cli import io
@@ -15,7 +12,6 @@ from django_cloud_deploy.cli import prompt_new
 from django_cloud_deploy.cloudlib import auth
 from django_cloud_deploy.cloudlib import billing
 from django_cloud_deploy.cloudlib import project
-from django_cloud_deploy.skeleton import utils
 
 
 class TemplatePromptManager(object):
@@ -27,9 +23,13 @@ class TemplatePromptManager(object):
     supplied. They also handle any busines logic related to a prompt, as well
     as become instantiated with any API related classes.
 
+    Args:
+        console: Object to use for user I/O.
+        step: Message to present to user regarding what step they are on.
+        args: Dictionary holding prompts answered by user and set up arguments.
     """
 
-    # Parameter Manager Owns must be set
+    # Parameter must be set for dictionary key
     PARAMETER = None
 
     def __init__(self, console: io.IO, step: str, args):
@@ -38,42 +38,55 @@ class TemplatePromptManager(object):
         self.args = args
 
     def prompt(self) -> None:
+        """Handles the business logic and calls the prompts."""
         pass
 
-    def validate(self, val: Any) -> bool:
-        return True
+    def validate(self, val: str):
+        """Checks if the string is valid. Throws a ValueError if not valid."""
+        return
 
     def get_credentials(self):
+        """Returns the credentials from the args dictionary."""
         return self.args.get('credentials', None)
 
     def _is_valid_passed_arg(self) -> bool:
+        """Used to validate if the user passed in a parameter as a flag.
+
+        All managers that retrieve a parameter should call this function first.
+        It requires all managers to have implemented validate. The code also
+        will process a passed in paramater as a step. This is used to have a
+        hard coded amount of steps that is easy to manage.
+
+        Returns:
+            A boolean indicating if the passed in argument is valid.
+        """
         value = self.args.get(self.PARAMETER, None)
         if value is None:
             return False
 
         try:
-            if self.validate(value):
-                msg = '{} {}: {}'.format(self.step, self.PARAMETER, value)
-                self.console.tell(msg)
-                return True
+            self.validate(value)
         except ValueError as e:
             self.console.error(e)
             return False
 
-        return False
+        msg = '{} {}: {}'.format(self.step, self.PARAMETER, value)
+        self.console.tell(msg)
+        return True
 
 
 class StringTemplatePromptManager(TemplatePromptManager):
     """Template for a simple string Prompt Manager."""
 
     PARAMETER = ''
-    PARAMTER_PRETTY = ''
+    PARAMETER_PRETTY = ''
     DEFAULT_VALUE = ''
     BASE_MESSAGE = '{} Enter a value for {} or leave blank to use'
     DEFAUlT_MESSAGE = '[{}]: '
 
     def _generate_name_prompt(self):
-        base_message = self.BASE_MESSAGE.format(self.step, self.PARAMTER_PRETTY)
+        base_message = self.BASE_MESSAGE.format(self.step,
+                                                self.PARAMETER_PRETTY)
         default_message = self.DEFAUlT_MESSAGE.format(self.DEFAULT_VALUE)
         msg = '\n'.join([base_message, default_message])
         return prompt_new.AskPrompt(
@@ -96,11 +109,11 @@ class GoogleProjectNameManager(TemplatePromptManager):
                  args,
                  project_client: Optional[project.ProjectClient] = None):
         super().__init__(console, step, args)
-        creds = self.get_credentials()
         self.project_client = (project_client or
-                               project.ProjectClient.from_credentials(creds))
+                               (project.ProjectClient.from_credentials(
+                                   self.get_credentials())))
 
-    def validate(self, s: str) -> bool:
+    def validate(self, s: str):
         """Validates that a string is a valid project name.
 
         Args:
@@ -115,7 +128,7 @@ class GoogleProjectNameManager(TemplatePromptManager):
                  'must be between 4 and 30 characters').format(s))
 
         if self._is_new_project():
-            return True
+            return
 
         project_id = self.args.get('project_id', None)
         if project_id is None:
@@ -125,7 +138,7 @@ class GoogleProjectNameManager(TemplatePromptManager):
         if project_name != s:
             raise ValueError('Wrong project name given for project id.')
 
-        return True
+        return
 
     def _generate_name_prompt(self):
         default_answer = 'Django Project'
@@ -153,12 +166,13 @@ class GoogleProjectNameManager(TemplatePromptManager):
             return
 
         if self._is_new_project():
-            self.args['project_name'] = self._generate_name_prompt().prompt()
+            self.args[self.PARAMETER] = self._generate_name_prompt().prompt()
         else:
             self._handle_existing_project()
 
 
 class GoogleNewProjectIdManager(TemplatePromptManager):
+    """Handles Project ID for new projects."""
 
     PARAMETER = 'project_id'
 
@@ -208,10 +222,11 @@ class GoogleNewProjectIdManager(TemplatePromptManager):
         if self._is_valid_passed_arg():
             return
 
-        self.args['project_id'] = self._generate_id_prompt().prompt()
+        self.args[self.PARAMETER] = self._generate_id_prompt().prompt()
 
 
 class GoogleProjectIdManager(TemplatePromptManager):
+    """Manager that handles fork between Existing and New Projects."""
 
     PARAMETER = 'project_id'
 
@@ -221,9 +236,9 @@ class GoogleProjectIdManager(TemplatePromptManager):
                  args,
                  project_client: project.ProjectClient = None):
         super().__init__(console, step, args)
-        creds = self.get_credentials()
         self.project_client = (project_client or
-                               project.ProjectClient.from_credentials(creds))
+                               (project.ProjectClient.from_credentials(
+                                   self.get_credentials())))
 
     def prompt(self):
         prompter = GoogleNewProjectIdManager(self.console, self.step, self.args)
@@ -236,15 +251,16 @@ class GoogleProjectIdManager(TemplatePromptManager):
 
 
 class GoogleExistingProjectIdManager(TemplatePromptManager):
+    """Handles Project ID for existing projects."""
 
     PARAMETER = 'project_id'
 
     def __init__(self, console: io.IO, step: str, args,
                  project_client: project.ProjectClient):
         super().__init__(console, step, args)
-        creds = self.get_credentials()
         self.project_client = (project_client or
-                               project.ProjectClient.from_credentials(creds))
+                               (project.ProjectClient.from_credentials(
+                                   self.get_credentials())))
 
     def _generate_existing_id_prompt(self):
         msg = ('{} Enter the <b>existing<b> Google Cloud Platform Project ID '
@@ -262,7 +278,7 @@ class GoogleExistingProjectIdManager(TemplatePromptManager):
         if self._is_valid_passed_arg():
             return
 
-        self.args['project_id'] = self._generate_existing_id_prompt().prompt()
+        self.args[self.PARAMETER] = self._generate_existing_id_prompt().prompt()
 
     def validate(self, s):
         """Validates that a string is a valid project id.
@@ -471,7 +487,7 @@ class PostgresPasswordPrompt(TemplatePromptManager):
 
     def validate(self, s: str):
         pass_prompt = prompt_new.PasswordPrompt(self.console)
-        return pass_prompt.validate(s)
+        pass_prompt.validate(s)
 
 
 class DjangoFilesystemPath(TemplatePromptManager):
@@ -522,7 +538,7 @@ class DjangoProjectNamePrompt(StringTemplatePromptManager):
     """Allow the user to enter a Django project name."""
 
     PARAMETER = 'django_project_name'
-    PARAMTER_PRETTY = 'Django project name'
+    PARAMETER_PRETTY = 'Django project name'
     DEFAULT_VALUE = 'mysite'
 
     def validate(self, s):
@@ -543,7 +559,7 @@ class DjangoAppNamePrompt(StringTemplatePromptManager):
     """Allow the user to enter a Django project name."""
 
     PARAMETER = 'django_app_name'
-    PARAMTER_PRETTY = 'Django app name'
+    PARAMETER_PRETTY = 'Django app name'
     DEFAULT_VALUE = 'home'
 
     def validate(self, s):
@@ -564,7 +580,7 @@ class DjangoSuperuserLoginPrompt(StringTemplatePromptManager):
     """Allow the user to enter a Django superuser login."""
 
     PARAMETER = 'django_superuser_login'
-    PARAMTER_PRETTY = 'Django superuser login name'
+    PARAMETER_PRETTY = 'Django superuser login name'
     DEFAULT_VALUE = 'admin'
 
     def validate(self, s: str):
@@ -605,7 +621,7 @@ class DjangoSuperuserEmailPrompt(StringTemplatePromptManager):
     """Allow the user to enter a Django email address."""
 
     PARAMETER = 'django_superuser_email'
-    PARAMTER_PRETTY = 'Django superuser email'
+    PARAMETER_PRETTY = 'Django superuser email'
     DEFAULT_VALUE = 'test@example.com'
 
     def validate(self, s: str):
